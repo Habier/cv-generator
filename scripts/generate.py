@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
+import copy
 import re
-import shutil
 import unicodedata
 from pathlib import Path
 from typing import Any
@@ -17,26 +17,24 @@ MONTHS = {
 
 def localized(value: Any, lang: str) -> str:
     if isinstance(value, dict):
-        return value.get(lang) or value.get("es") or value.get("en") or ""
+        return str(value.get(lang) or value.get("es") or value.get("en") or next((item for item in value.values() if item), ""))
     return str(value)
 
 
 def format_date(value: Any, lang: str, labels: dict) -> str:
     if value in (None, "", "present"):
-        return labels["present"]
+        return labels.get("present", "Present")
     value = str(value)
     if len(value) == 4:
         return value
-    year, month = value.split("-")[:2]
-    return f"{MONTHS[lang][int(month)]} {year}"
-
-
-def sort_by_focus(technologies: list[str], boost: list[str]) -> list[str]:
-    boost_set = {item.lower(): i for i, item in enumerate(boost)}
-    return sorted(
-        technologies,
-        key=lambda t: (0, boost_set[t.lower()]) if t.lower() in boost_set else (1, technologies.index(t)),
-    )
+    try:
+        year, month = value.split("-")[:2]
+        month_index = int(month)
+    except ValueError:
+        return value
+    if lang not in MONTHS:
+        return f"{year}-{month}"
+    return f"{MONTHS[lang][month_index]} {year}"
 
 
 def slugify(value: str) -> str:
@@ -51,52 +49,78 @@ def template_choices(root: Path) -> list[str]:
     return sorted([p.name for p in templates_root.iterdir() if p.is_dir() and (p / "cv.html.j2").exists()])
 
 
-def build(args: argparse.Namespace) -> None:
-    root = Path(__file__).resolve().parents[1]
-    data_path = root / "cv.yml"
-    output_dir = root / "output"
-    output_dir.mkdir(exist_ok=True)
+def add_localized_fallbacks(value: Any, lang: str, known_languages: list[str]) -> Any:
+    if isinstance(value, list):
+        return [add_localized_fallbacks(item, lang, known_languages) for item in value]
+    if not isinstance(value, dict):
+        return value
 
-    data = yaml.safe_load(data_path.read_text(encoding="utf-8"))
-    lang = args.lang or data["settings"]["default_language"]
-    profile = args.profile or data["settings"]["default_profile"]
-    focus = args.focus or data["settings"]["default_focus"]
-    template_name = args.template or data["settings"].get("default_template", "classic")
+    updated = {key: add_localized_fallbacks(item, lang, known_languages) for key, item in value.items()}
+    localized_keys = [key for key in (*known_languages, "es", "en") if key in updated]
+    if lang not in updated and localized_keys:
+        fallback_key = next((key for key in ("es", "en") if key in updated), None)
+        fallback_key = fallback_key or localized_keys[0]
+        if fallback_key is not None:
+            updated[lang] = copy.deepcopy(updated[fallback_key])
+    return updated
 
-    if lang not in ("es", "en"):
-        raise SystemExit("Invalid language. Use: es or en")
-    if profile not in data["profiles"]:
-        raise SystemExit(f"Invalid profile: {profile}")
-    if focus not in data["focuses"]:
-        raise SystemExit(f"Invalid focus: {focus}")
 
+def languages_from_labels(data: dict[str, Any]) -> list[str]:
+    labels = data.get("labels")
+    if not isinstance(labels, dict) or not labels:
+        raise SystemExit("cv.yml must define labels with at least one language key")
+    return list(labels.keys())
+
+
+def profiles_from_data(data: dict[str, Any]) -> list[str]:
+    profiles = data.get("profiles")
+    if not isinstance(profiles, dict) or not profiles:
+        raise SystemExit("cv.yml must define at least one profile under profiles")
+    return list(profiles.keys())
+
+
+def selected_template(root: Path, data: dict[str, Any], requested_template: str | None) -> str:
     choices = template_choices(root)
+    template_name = requested_template or data.get("settings", {}).get("default_template", "classic")
     if template_name not in choices:
         raise SystemExit(f"Invalid template: {template_name}. Available: {', '.join(choices)}")
+    return template_name
 
-    labels = data["labels"][lang]
-    boost = data["focuses"][focus].get("boost_skills", [])
-    title = data["profiles"][profile]["title"][lang] + data["focuses"][focus]["title_suffix"][lang]
+
+def render_variant(
+    root: Path,
+    data: dict[str, Any],
+    lang: str,
+    profile: str,
+    template_name: str,
+    output_dir: Path,
+    pdf_renderer: Any,
+) -> Path:
+    known_languages = languages_from_labels(data)
+    variant_data = add_localized_fallbacks(data, lang, known_languages)
+
+    labels = variant_data["labels"][lang]
+    profile_data = variant_data["profiles"][profile]
+    title = localized(profile_data.get("title", ""), lang)
 
     experience = []
-    for job in data["experience"]:
+    for job in variant_data.get("experience", []):
         item = dict(job)
         item["company_name"] = localized(item["company"], lang)
         start = format_date(item.get("start"), lang, labels)
         end = format_date(item.get("end"), lang, labels)
         item["date_range"] = f"{start} – {end}"
-        item["technologies"] = sort_by_focus(item.get("technologies", []), boost)
         experience.append(item)
 
     projects = []
-    for project in data.get("projects", []):
-        if profile not in project.get("profiles", []):
+    for project in variant_data.get("projects", []):
+        project_profiles = project.get("profiles")
+        if project_profiles is not None and profile not in project_profiles:
             continue
         item = dict(project)
-        item["technologies"] = sort_by_focus(item.get("technologies", []), boost)
         projects.append(item)
 
-    skills = data["skills"][profile][lang]
+    skills = variant_data.get("skills", {}).get(lang, {})
 
     template_dir = root / "templates" / template_name
     env = Environment(
@@ -109,57 +133,62 @@ def build(args: argparse.Namespace) -> None:
     html = template.render(
         lang=lang,
         profile=profile,
-        focus=focus,
         template_name=template_name,
-        personal=data["personal"],
+        personal=variant_data["personal"],
         labels=labels,
         title=title,
-        summary=data["profiles"][profile]["summary"][lang],
+        summary=localized(profile_data.get("summary", ""), lang),
         experience=experience,
         projects=projects,
-        education=data["education"],
-        languages=data.get("languages", []),
+        education=variant_data.get("education", []),
+        languages=variant_data.get("languages", []),
         skills=skills,
-        certifications=data.get("certifications", []),
+        certifications=variant_data.get("certifications", []),
     )
 
-    base_name = f"cv-{slugify(data['personal']['name'])}-{profile}-{lang}"
-    if focus != "default":
-        base_name += f"-{focus}"
+    base_name = f"cv-{slugify(variant_data['personal']['name'])}-{profile}-{lang}"
     if template_name != "classic":
         base_name += f"-{template_name}"
 
-    html_path = output_dir / f"{base_name}.html"
     pdf_path = output_dir / f"{base_name}.pdf"
-    css_name = f"style-{base_name}.css"
-    css_output_path = output_dir / css_name
 
-    html = html.replace('href="style.css"', f'href="{css_name}"')
-    html_path.write_text(html, encoding="utf-8")
-    shutil.copy(template_dir / "style.css", css_output_path)
+    pdf_renderer(string=html, base_url=str(template_dir)).write_pdf(str(pdf_path))
+    return pdf_path
 
-    if args.pdf:
-        try:
-            from weasyprint import HTML
-        except Exception as exc:
-            raise SystemExit(
-                "No se pudo importar WeasyPrint. Instala dependencias con: pip install -r requirements.txt"
-            ) from exc
-        HTML(filename=str(html_path)).write_pdf(str(pdf_path))
+
+def iter_valid_variants(data: dict[str, Any]) -> list[tuple[str, str]]:
+    languages = languages_from_labels(data)
+    profiles = profiles_from_data(data)
+    return [(lang, profile) for profile in profiles for lang in languages]
+
+
+def build(args: argparse.Namespace) -> None:
+    root = Path(__file__).resolve().parents[1]
+    data_path = root / "cv.yml"
+    output_dir = root / "output"
+    output_dir.mkdir(exist_ok=True)
+
+    data = yaml.safe_load(data_path.read_text(encoding="utf-8"))
+    template_name = selected_template(root, data, args.template)
+    try:
+        from weasyprint import HTML
+    except Exception as exc:
+        raise SystemExit("Could not import WeasyPrint. Install dependencies with: pip install -r requirements.txt") from exc
+    generated = [
+        render_variant(root, data, lang, profile, template_name, output_dir, HTML)
+        for lang, profile in iter_valid_variants(data)
+    ]
+
+    for pdf_path in generated:
         print(f"Generated: {pdf_path}")
-    else:
-        print(f"Generated: {html_path}")
+    print(f"Generated {len(generated)} PDF(s).")
 
 
 def main() -> None:
     root = Path(__file__).resolve().parents[1]
     choices = template_choices(root)
     parser = argparse.ArgumentParser(description="Generate CV variants from cv.yml")
-    parser.add_argument("--lang", choices=["es", "en"], default=None)
-    parser.add_argument("--profile", choices=["backend", "fullstack"], default=None)
-    parser.add_argument("--focus", choices=["default", "laravel", "symfony"], default=None)
     parser.add_argument("--template", choices=choices, default=None, help=f"Template to use. Available: {', '.join(choices)}")
-    parser.add_argument("--pdf", action="store_true", help="Generate PDF using WeasyPrint")
     build(parser.parse_args())
 
 

@@ -1,22 +1,17 @@
-# Generador de CV
+# CV Generator
 
-Generador de CV basado en una única fuente de datos (`cv.yml`) para producir variantes por idioma, perfil, foco tecnológico y plantilla visual.
+CV generator powered by a single local data file (`cv.yml`). It renders every valid CV variant for the selected visual template.
 
-## Qué incluye
+## What it includes
 
-- Una única fuente de verdad: `cv.yml`.
-- Un ejemplo público seguro: `cv.yml.example`; copia este fichero a `cv.yml` para trabajar con tus datos locales.
-- Idiomas: `es`, `en`.
-- Perfiles: `backend`, `fullstack`.
-- Focos: `default`, `laravel`, `symfony`.
-- Plantillas:
-  - `classic`: plantilla sobria inicial.
-  - `pdf-like`: la más parecida a tu CV actual en PDF; una columna, cabecera centrada, secciones simples.
-  - `compact`: más densa, pensada para encajar mejor en 1-2 páginas.
-  - `sidebar`: versión con columna lateral para contacto y skills.
-  - `ats-clean`: ATS-conscious one-column template with subtle color accents and clear semantic sections.
+- One source of truth: `cv.yml`.
+- A safe public example: `cv.yml.example`; copy it to `cv.yml` for local private data.
+- Languages are inferred from the keys under `labels`.
+- Profiles are inferred from the keys under `profiles`.
+- Generation renders every profile × every language.
+- Templates are discovered dynamically from folders under `templates/` that contain `cv.html.j2`.
 
-## Estructura
+## Structure
 
 ```text
 cv-generator/
@@ -45,11 +40,11 @@ cv-generator/
         └── style.css
 ```
 
-## Instalación
+## Installation
 
 ### Ubuntu / Debian
 
-WeasyPrint necesita algunas dependencias del sistema para generar PDF:
+WeasyPrint needs system dependencies to generate PDFs:
 
 ```bash
 sudo apt update
@@ -58,7 +53,7 @@ sudo apt install -y python3 python3-venv python3-pip make \
   libcairo2 libgdk-pixbuf-2.0-0
 ```
 
-Después:
+Then:
 
 ```bash
 make install
@@ -85,123 +80,137 @@ cp cv.yml.example cv.yml
 
 Do not commit your personal `cv.yml`. If it was already tracked in a repository, remove it from the index with `git rm --cached cv.yml` while keeping the local file.
 
-## Uso rápido
+## Usage
 
-Generar las cuatro versiones principales en PDF usando la plantilla por defecto (`classic`):
+Generate all valid PDF variants with the default template (`settings.default_template`, usually `classic`):
 
 ```bash
-make pdf
+python scripts/generate.py
 ```
 
-Generar las cuatro versiones usando la plantilla más parecida a tu PDF actual:
+Generate all valid PDF variants with a specific template:
+
+```bash
+python scripts/generate.py --template pdf-like
+python scripts/generate.py --template ats-clean
+```
+
+Equivalent Make target:
 
 ```bash
 make pdf TEMPLATE=pdf-like
 ```
 
-Generar todas las versiones principales con todas las plantillas:
-
-```bash
-make all-templates
-```
-
-Generate the ATS-conscious one-column template with subtle color accents:
-
-```bash
-make pdf TEMPLATE=ats-clean
-```
-
-Los ficheros se crean en:
+Generated files are written to:
 
 ```text
 output/
 ```
 
-## Comandos concretos
-
-Backend español:
-
-```bash
-make backend-es TEMPLATE=pdf-like
-```
-
-Backend inglés:
-
-```bash
-make backend-en TEMPLATE=pdf-like
-```
-
-Fullstack español:
-
-```bash
-make fullstack-es TEMPLATE=pdf-like
-```
-
-Fullstack inglés:
-
-```bash
-make fullstack-en TEMPLATE=pdf-like
-```
-
-Versión Laravel:
-
-```bash
-make backend-es-laravel TEMPLATE=pdf-like
-```
-
-## Generar HTML en vez de PDF
-
-Útil para revisar rápido en navegador:
-
-```bash
-make html TEMPLATE=pdf-like
-```
-
-O previsualizar un CV backend español con todas las plantillas:
-
-```bash
-make preview-templates
-```
-
-## Uso directo del script
-
-```bash
-python scripts/generate.py --profile backend --lang es --template pdf-like --pdf
-python scripts/generate.py --profile fullstack --lang en --template compact --focus laravel --pdf
-python scripts/generate.py --profile backend --lang es --template ats-clean --pdf
-```
-
-Opciones:
+The CLI intentionally supports only one option:
 
 ```text
---profile   backend | fullstack
---lang      es | en
---focus     default | laravel | symfony
---template  ats-clean | classic | compact | pdf-like | sidebar
---pdf       genera PDF; sin esta opción genera HTML
+--template  Template folder name discovered from templates/*/cv.html.j2
 ```
 
-## Editar contenido
+PDF generation is the default behavior.
 
-Todo el contenido editable está en `cv.yml`. Si todavía no existe, créalo desde `cv.yml.example` y luego edita la copia local:
+## Configuration model
+
+### Languages
+
+Languages come from the keys under `labels`:
+
+```yaml
+labels:
+  es:
+    present: Actualidad
+  en:
+    present: Present
+```
+
+Any language key can be used. Localized content should use the same keys when possible. If a localized field is missing a generated language, the generator falls back to another available value where possible.
+
+### Profiles
+
+Profiles come from the keys under `profiles`:
+
+```yaml
+profiles:
+  backend:
+    title:
+      es: Backend Developer
+      en: Backend Developer
+    summary:
+      es: Desarrollador backend...
+      en: Backend developer...
+```
+
+Each profile is generated once for each language key under `labels`. Output filenames follow `cv-{name}-{profile}-{language}.pdf`, with the template name appended for non-classic templates.
+
+### Skills
+
+Skills are global per language, not per profile. Every generated profile for the same language uses the same `skills.<language>` groups:
+
+```yaml
+skills:
+  es:
+    Backend:
+      - PHP
+      - Laravel
+  en:
+    Backend:
+      - PHP
+      - Laravel
+```
+
+### Projects
+
+Projects may be shared by every profile or limited to specific profiles. Omit `profiles` when a project should appear in every generated profile:
+
+```yaml
+projects:
+  - name: Shared Project
+    description:
+      es: Proyecto visible en todos los perfiles.
+      en: Project visible in every profile.
+```
+
+Add `profiles` only when a project should be filtered to those profile keys:
+
+```yaml
+projects:
+  - name: Fullstack Project
+    profiles:
+      - fullstack
+    description:
+      es: Proyecto visible solo en el perfil fullstack.
+      en: Project visible only in the fullstack profile.
+```
+
+## Editing content
+
+Editable content lives in `cv.yml`. If it does not exist yet, create it from the example:
 
 ```bash
 cp cv.yml.example cv.yml
 ```
 
-- Datos personales: `personal`
-- Títulos y resúmenes: `profiles`
-- Experiencia: `experience`
-- Proyectos: `projects`
-- Formación: `education`
-- Skills: `skills`
-- Certificaciones: `certifications`
+Common sections:
 
-Por ejemplo, para cambiar una fecha o una tecnología, edítala una sola vez en `cv.yml` y vuelve a ejecutar `make pdf`.
+- `personal`
+- `labels`
+- `profiles`
+- `experience`
+- `projects`
+- `education`
+- `languages`
+- `skills`
+- `certifications`
 
-## Editar diseño
+## Editing design
 
-Cada plantilla tiene su propio CSS:
+Each template has its own CSS:
 
 ```text
 templates/pdf-like/style.css
@@ -210,29 +219,17 @@ templates/sidebar/style.css
 templates/ats-clean/style.css
 ```
 
-Para crear una nueva plantilla:
+To create a new template:
 
-1. Copia una carpeta existente, por ejemplo:
+1. Copy an existing folder, for example:
 
 ```bash
 cp -r templates/pdf-like templates/my-template
 ```
 
-2. Edita `templates/my-template/style.css` y/o `templates/my-template/cv.html.j2`.
-3. Genera el CV:
+2. Edit `templates/my-template/style.css` and/or `templates/my-template/cv.html.j2`.
+3. Generate all valid variants with the new template:
 
 ```bash
-python scripts/generate.py --profile backend --lang es --template my-template --pdf
+python scripts/generate.py --template my-template
 ```
-
-El script detecta automáticamente las carpetas dentro de `templates/` que tengan un `cv.html.j2`.
-
-## Recomendación
-
-Para tu caso, empezaría usando:
-
-```bash
-make pdf TEMPLATE=pdf-like
-```
-
-Es la plantilla más cercana a los PDFs que ya estabas usando, pero generada automáticamente desde `cv.yml`.

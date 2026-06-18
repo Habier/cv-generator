@@ -1,7 +1,6 @@
 settings:
   default_language: es
   default_profile: backend
-  default_focus: default
   default_template: classic
 
 personal:
@@ -52,29 +51,6 @@ profiles:
       es: Desarrollador fullstack con experiencia en aplicaciones web, integración de APIs y mejora continua de productos.
       en: Fullstack developer experienced in web applications, API integration, and continuous product improvement.
 
-focuses:
-  default:
-    title_suffix:
-      es: ""
-      en: ""
-    boost_skills: []
-  laravel:
-    title_suffix:
-      es: " | Laravel"
-      en: " | Laravel"
-    boost_skills:
-      - PHP
-      - Laravel
-      - MySQL
-  symfony:
-    title_suffix:
-      es: " | Symfony"
-      en: " | Symfony"
-    boost_skills:
-      - PHP
-      - Symfony
-      - PostgreSQL
-
 experience:
   - company:
       es: Acme Digital Solutions
@@ -122,9 +98,6 @@ experience:
 
 projects:
   - name: Portfolio Automation Toolkit
-    profiles:
-      - backend
-      - fullstack
     description:
       es: Herramienta de ejemplo para generar informes estáticos desde datos YAML y plantillas HTML.
       en: Example tool that generates static reports from YAML data and HTML templates.
@@ -168,64 +141,44 @@ languages:
       en: Cambridge B2
 
 skills:
-  backend:
-    es:
-      Lenguajes:
-        - Python
-        - PHP
-        - SQL
-      Frameworks:
-        - FastAPI
-        - Laravel
-        - Symfony
-      Datos e infraestructura:
-        - PostgreSQL
-        - MySQL
-        - Docker
-        - Redis
-    en:
-      Languages:
-        - Python
-        - PHP
-        - SQL
-      Frameworks:
-        - FastAPI
-        - Laravel
-        - Symfony
-      Data and infrastructure:
-        - PostgreSQL
-        - MySQL
-        - Docker
-        - Redis
-  fullstack:
-    es:
-      Frontend:
-        - TypeScript
-        - React
-        - HTML
-        - CSS
-      Backend:
-        - Python
-        - PHP
-        - Node.js
-      Herramientas:
-        - Git
-        - Docker
-        - CI/CD
-    en:
-      Frontend:
-        - TypeScript
-        - React
-        - HTML
-        - CSS
-      Backend:
-        - Python
-        - PHP
-        - Node.js
-      Tools:
-        - Git
-        - Docker
-        - CI/CD
+  es:
+    Lenguajes:
+      - Python
+      - PHP
+      - SQL
+      - TypeScript
+    Frameworks:
+      - FastAPI
+      - Laravel
+      - Symfony
+      - React
+    Datos e infraestructura:
+      - PostgreSQL
+      - MySQL
+      - Docker
+      - Redis
+    Herramientas:
+      - Git
+      - CI/CD
+  en:
+    Languages:
+      - Python
+      - PHP
+      - SQL
+      - TypeScript
+    Frameworks:
+      - FastAPI
+      - Laravel
+      - Symfony
+      - React
+    Data and infrastructure:
+      - PostgreSQL
+      - MySQL
+      - Docker
+      - Redis
+    Tools:
+      - Git
+      - CI/CD
 
 certifications:
   - es: Certificación profesional de ejemplo en desarrollo backend, 2023
