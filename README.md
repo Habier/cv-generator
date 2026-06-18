@@ -95,6 +95,13 @@ python scripts/generate.py --template pdf-like
 python scripts/generate.py --template ats-clean
 ```
 
+Generate all valid PDF variants from a non-default CV data file:
+
+```bash
+python scripts/generate.py --cv path/to/cv.yml
+python scripts/generate.py --cv /absolute/path/to/cv.yml --template pdf-like
+```
+
 Equivalent Make target:
 
 ```bash
@@ -107,9 +114,10 @@ Generated files are written to:
 output/
 ```
 
-The CLI intentionally supports only one option:
+CLI options:
 
 ```text
+--cv        CV YAML file to read. Defaults to the repo root cv.yml
 --template  Template folder name discovered from templates/*/cv.html.j2
 ```
 
@@ -139,11 +147,11 @@ Profiles come from the keys under `profiles`:
 profiles:
   backend:
     title:
-      es: Backend Developer
+      es: Desarrollador backend
       en: Backend Developer
     summary:
-      es: Desarrollador backend...
-      en: Backend developer...
+      es: Desarrollador backend con 6 años de experiencia...
+      en: Backend developer with 6 years of experience...
 ```
 
 Each profile is generated once for each language key under `labels`. Output filenames follow `cv-{name}-{profile}-{language}.pdf`, with the template name appended for non-classic templates.

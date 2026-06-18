@@ -6,9 +6,6 @@ import unicodedata
 from pathlib import Path
 from typing import Any
 
-import yaml
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-
 MONTHS = {
     "es": ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
     "en": ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
@@ -122,6 +119,8 @@ def render_variant(
 
     skills = variant_data.get("skills", {}).get(lang, {})
 
+    from jinja2 import Environment, FileSystemLoader, select_autoescape
+
     template_dir = root / "templates" / template_name
     env = Environment(
         loader=FileSystemLoader(template_dir),
@@ -162,11 +161,26 @@ def iter_valid_variants(data: dict[str, Any]) -> list[tuple[str, str]]:
     return [(lang, profile) for profile in profiles for lang in languages]
 
 
+def resolve_cv_path(root: Path, requested_cv: str | None) -> Path:
+    if requested_cv is None:
+        data_path = root / "cv.yml"
+    else:
+        data_path = Path(requested_cv).expanduser()
+        if not data_path.is_absolute():
+            data_path = data_path.resolve()
+
+    if not data_path.is_file():
+        raise SystemExit(f"CV data file not found: {data_path}")
+    return data_path
+
+
 def build(args: argparse.Namespace) -> None:
     root = Path(__file__).resolve().parents[1]
-    data_path = root / "cv.yml"
+    data_path = resolve_cv_path(root, args.cv)
     output_dir = root / "output"
     output_dir.mkdir(exist_ok=True)
+
+    import yaml
 
     data = yaml.safe_load(data_path.read_text(encoding="utf-8"))
     template_name = selected_template(root, data, args.template)
@@ -187,7 +201,8 @@ def build(args: argparse.Namespace) -> None:
 def main() -> None:
     root = Path(__file__).resolve().parents[1]
     choices = template_choices(root)
-    parser = argparse.ArgumentParser(description="Generate CV variants from cv.yml")
+    parser = argparse.ArgumentParser(description="Generate CV variants from a YAML data file")
+    parser.add_argument("--cv", default=None, help="CV YAML file to read. Defaults to the repo root cv.yml")
     parser.add_argument("--template", choices=choices, default=None, help=f"Template to use. Available: {', '.join(choices)}")
     build(parser.parse_args())
 
