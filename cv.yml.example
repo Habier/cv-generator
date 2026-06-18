@@ -1,0 +1,232 @@
+settings:
+  default_language: es
+  default_profile: backend
+  default_focus: default
+  default_template: classic
+
+personal:
+  name: Habier Github
+  location:
+    es: Madrid, España
+    en: Madrid, Spain
+  phone: "+34 600 000 000"
+  email: habier.github@example.com
+  github: https://github.com/habier
+  linkedin: https://www.linkedin.com/in/example-profile
+
+labels:
+  es:
+    present: Actualidad
+    professional_summary: Perfil profesional
+    professional_experience: Experiencia profesional
+    personal_projects: Proyectos personales
+    education: Formación
+    languages: Idiomas
+    technical_skills: Competencias técnicas
+    certifications: Certificaciones
+    technologies: Tecnologías
+  en:
+    present: Present
+    professional_summary: Professional summary
+    professional_experience: Professional experience
+    personal_projects: Personal projects
+    education: Education
+    languages: Languages
+    technical_skills: Technical skills
+    certifications: Certifications
+    technologies: Technologies
+
+profiles:
+  backend:
+    title:
+      es: Backend Developer
+      en: Backend Developer
+    summary:
+      es: Desarrollador backend con experiencia creando APIs, automatizaciones y servicios fiables para productos digitales.
+      en: Backend developer experienced in building APIs, automations, and reliable services for digital products.
+  fullstack:
+    title:
+      es: Fullstack Developer
+      en: Fullstack Developer
+    summary:
+      es: Desarrollador fullstack con experiencia en aplicaciones web, integración de APIs y mejora continua de productos.
+      en: Fullstack developer experienced in web applications, API integration, and continuous product improvement.
+
+focuses:
+  default:
+    title_suffix:
+      es: ""
+      en: ""
+    boost_skills: []
+  laravel:
+    title_suffix:
+      es: " | Laravel"
+      en: " | Laravel"
+    boost_skills:
+      - PHP
+      - Laravel
+      - MySQL
+  symfony:
+    title_suffix:
+      es: " | Symfony"
+      en: " | Symfony"
+    boost_skills:
+      - PHP
+      - Symfony
+      - PostgreSQL
+
+experience:
+  - company:
+      es: Acme Digital Solutions
+      en: Acme Digital Solutions
+    role:
+      es: Backend Developer
+      en: Backend Developer
+    start: "2022-03"
+    end: present
+    description:
+      es: Desarrollo y mantenimiento de servicios internos, APIs REST y procesos de integración para una plataforma SaaS.
+      en: Developed and maintained internal services, REST APIs, and integration workflows for a SaaS platform.
+    bullets:
+      - es: Diseñé endpoints reutilizables para automatizar tareas operativas y reducir trabajo manual.
+        en: Designed reusable endpoints to automate operational tasks and reduce manual work.
+      - es: Mejoré consultas y procesos batch para reducir tiempos de respuesta en flujos críticos.
+        en: Improved queries and batch processes to reduce response times in critical flows.
+    technologies:
+      - Python
+      - FastAPI
+      - PostgreSQL
+      - Docker
+  - company:
+      es: Northwind Labs
+      en: Northwind Labs
+    role:
+      es: Fullstack Developer
+      en: Fullstack Developer
+    start: "2020-01"
+    end: "2022-02"
+    description:
+      es: Creación de interfaces administrativas y servicios backend para herramientas de gestión empresarial.
+      en: Built administrative interfaces and backend services for business management tools.
+    bullets:
+      - es: Implementé componentes de UI accesibles conectados a APIs internas.
+        en: Implemented accessible UI components connected to internal APIs.
+      - es: Colaboré en revisiones de código y documentación técnica para facilitar el mantenimiento.
+        en: Collaborated on code reviews and technical documentation to improve maintainability.
+    technologies:
+      - TypeScript
+      - React
+      - PHP
+      - Laravel
+      - MySQL
+
+projects:
+  - name: Portfolio Automation Toolkit
+    profiles:
+      - backend
+      - fullstack
+    description:
+      es: Herramienta de ejemplo para generar informes estáticos desde datos YAML y plantillas HTML.
+      en: Example tool that generates static reports from YAML data and HTML templates.
+    bullets:
+      - es: Separé datos, plantillas y salida generada para facilitar cambios seguros.
+        en: Separated data, templates, and generated output to make safe changes easier.
+    technologies:
+      - Python
+      - Jinja2
+      - YAML
+  - name: Team Dashboard Demo
+    profiles:
+      - fullstack
+    description:
+      es: Panel web de demostración para visualizar métricas de equipo con datos ficticios.
+      en: Demo web dashboard for viewing team metrics with fictional data.
+    bullets:
+      - es: Construí vistas responsivas y filtros simples para explorar información de ejemplo.
+        en: Built responsive views and simple filters to explore sample information.
+    technologies:
+      - TypeScript
+      - React
+      - Node.js
+
+education:
+  - es: Técnico Superior en Desarrollo de Aplicaciones Web — Instituto Tecnológico Ejemplo, 2019
+    en: Higher Technician in Web Application Development — Example Technology Institute, 2019
+
+languages:
+  - name:
+      es: Español
+      en: Spanish
+    level:
+      es: Nativo
+      en: Native
+  - name:
+      es: Inglés
+      en: English
+    level:
+      es: Cambridge B2
+      en: Cambridge B2
+
+skills:
+  backend:
+    es:
+      Lenguajes:
+        - Python
+        - PHP
+        - SQL
+      Frameworks:
+        - FastAPI
+        - Laravel
+        - Symfony
+      Datos e infraestructura:
+        - PostgreSQL
+        - MySQL
+        - Docker
+        - Redis
+    en:
+      Languages:
+        - Python
+        - PHP
+        - SQL
+      Frameworks:
+        - FastAPI
+        - Laravel
+        - Symfony
+      Data and infrastructure:
+        - PostgreSQL
+        - MySQL
+        - Docker
+        - Redis
+  fullstack:
+    es:
+      Frontend:
+        - TypeScript
+        - React
+        - HTML
+        - CSS
+      Backend:
+        - Python
+        - PHP
+        - Node.js
+      Herramientas:
+        - Git
+        - Docker
+        - CI/CD
+    en:
+      Frontend:
+        - TypeScript
+        - React
+        - HTML
+        - CSS
+      Backend:
+        - Python
+        - PHP
+        - Node.js
+      Tools:
+        - Git
+        - Docker
+        - CI/CD
+
+certifications:
+  - es: Certificación profesional de ejemplo en desarrollo backend, 2023
+    en: Example professional certification in backend development, 2023

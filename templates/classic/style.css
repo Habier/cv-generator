@@ -1,0 +1,81 @@
+@page {
+  size: A4;
+  margin: 14mm 15mm;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: #222;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.32;
+}
+
+.page {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 22pt;
+  line-height: 1.1;
+}
+
+h2 {
+  margin: 3px 0 6px;
+  font-size: 13pt;
+  font-weight: 500;
+}
+
+.contact {
+  margin: 0;
+  font-size: 9.5pt;
+}
+
+h3 {
+  margin: 13px 0 6px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #333;
+  font-size: 11pt;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+p {
+  margin: 3px 0;
+}
+
+.item {
+  margin-bottom: 8px;
+}
+
+.item-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+
+ul {
+  margin: 3px 0 3px 18px;
+  padding: 0;
+}
+
+.compact li {
+  margin: 0;
+}
+
+.tech,
+.skills p {
+  font-size: 9.7pt;
+}

@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head><meta charset="utf-8"><title>{{ personal.name }} - {{ title }}</title><link rel="stylesheet" href="style.css"></head>
+<body><main class="page">
+<header><div><h1>{{ personal.name }}</h1><h2>{{ title }}</h2></div><p>{{ personal.location[lang] }}<br>{{ personal.phone }} · {{ personal.email }}<br>{{ personal.github }} · {{ personal.linkedin }}</p></header>
+<section><h3>{{ labels.professional_summary }}</h3><p>{{ summary }}</p></section>
+<section><h3>{{ labels.professional_experience }}</h3>{% for job in experience %}<article class="item"><div class="row"><strong>{{ job.company_name }}</strong><span>{{ job.date_range }}</span></div><div class="role">{{ job.role[lang] }}</div><p>{{ job.description[lang] }}</p>{% if job.bullets %}<ul>{% for bullet in job.bullets %}<li>{{ bullet[lang] }}</li>{% endfor %}</ul>{% endif %}<p class="tech"><strong>{{ labels.technologies }}:</strong> {{ job.technologies | join(', ') }}</p></article>{% endfor %}</section>
+<section><h3>{{ labels.personal_projects }}</h3>{% for project in projects %}<article class="item"><strong>{{ project.name }}</strong><p>{{ project.description[lang] }}</p>{% if project.bullets %}<ul>{% for bullet in project.bullets %}<li>{{ bullet[lang] }}</li>{% endfor %}</ul>{% endif %}<p class="tech"><strong>{{ labels.technologies }}:</strong> {{ project.technologies | join(', ') }}</p></article>{% endfor %}</section>
+<section class="grid"><div><h3>{{ labels.education }}</h3><ul class="compact">{% for item in education %}<li>{{ item[lang] }}</li>{% endfor %}</ul></div><div><h3>{{ labels.certifications }}</h3><ul class="compact">{% for item in certifications %}<li>{{ item[lang] }}</li>{% endfor %}</ul></div></section>
+<section><h3>{{ labels.technical_skills }}</h3><div class="skills">{% for group, values in skills.items() %}<p><strong>{{ group }}:</strong> {{ values | join(', ') }}</p>{% endfor %}</div></section>
+</main></body></html>

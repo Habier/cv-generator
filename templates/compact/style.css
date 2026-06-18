@@ -1,0 +1,17 @@
+@page { size: A4; margin: 11mm 13mm; }
+* { box-sizing: border-box; }
+body { margin: 0; color: #202020; font-family: Arial, Helvetica, sans-serif; font-size: 9.9pt; line-height: 1.24; }
+.page { max-width: 805px; margin: 0 auto; }
+header { display: flex; justify-content: space-between; gap: 20px; border-bottom: 1.5px solid #222; padding-bottom: 7px; margin-bottom: 9px; }
+h1 { margin: 0; font-size: 20pt; line-height: 1; }
+h2 { margin: 3px 0 0; font-size: 12pt; font-weight: 500; }
+header p { margin: 0; text-align: right; font-size: 8.8pt; }
+h3 { margin: 9px 0 4px; font-size: 10.5pt; text-transform: uppercase; letter-spacing: .03em; }
+p { margin: 2px 0; }
+.item { margin-bottom: 5px; break-inside: avoid; }
+.row { display: flex; justify-content: space-between; gap: 12px; }
+.role { font-style: italic; margin: 1px 0; }
+ul { margin: 2px 0 2px 16px; padding: 0; }
+.compact { margin-left: 15px; }
+.grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 20px; }
+.tech, .skills p { font-size: 9.1pt; }

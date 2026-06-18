@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <title>{{ personal.name }} - {{ title }}</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <h1>{{ personal.name }}</h1>
+      <p class="headline">{{ title }}</p>
+      <address class="contact" aria-label="Contact information">
+        <span>{{ personal.location[lang] }}</span>
+        <span>{{ personal.phone }}</span>
+        <span>{{ personal.email }}</span>
+        <span><a href="{{ personal.github }}">{{ personal.github | replace('https://', '') | replace('http://', '') }}</a></span>
+        <span><a href="{{ personal.linkedin }}">{{ personal.linkedin | replace('https://', '') | replace('http://', '') }}</a></span>
+      </address>
+    </header>
+
+    <section class="section" aria-labelledby="summary-heading">
+      <h2 id="summary-heading">{{ labels.professional_summary }}</h2>
+      <p>{{ summary }}</p>
+    </section>
+
+    <section class="section" aria-labelledby="experience-heading">
+      <h2 id="experience-heading">{{ labels.professional_experience }}</h2>
+      {% for job in experience %}
+      <article class="item">
+        <header class="item-header">
+          <div>
+            <h3>{{ job.company_name }} <span class="role-group"><span class="title-separator">—</span> <span class="role">{{ job.role[lang] }}</span></span></h3>
+          </div>
+          <p class="date-range">{{ job.date_range }}</p>
+        </header>
+        <p>{{ job.description[lang] }}</p>
+        {% if job.bullets %}
+        <ul>
+          {% for bullet in job.bullets %}
+          <li>{{ bullet[lang] }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        <p class="tech"><strong>{{ labels.technologies }}:</strong> {{ job.technologies | join(', ') }}</p>
+      </article>
+      {% endfor %}
+    </section>
+
+    <section class="section" aria-labelledby="projects-heading">
+      <h2 id="projects-heading">{{ labels.personal_projects }}</h2>
+      {% for project in projects %}
+      <article class="item">
+        <h3>{{ project.name }}</h3>
+        <p>{{ project.description[lang] }}</p>
+        {% if project.bullets %}
+        <ul>
+          {% for bullet in project.bullets %}
+          <li>{{ bullet[lang] }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        <p class="tech"><strong>{{ labels.technologies }}:</strong> {{ project.technologies | join(', ') }}</p>
+      </article>
+      {% endfor %}
+    </section>
+
+    <section class="section compact-section" aria-labelledby="education-heading">
+      <h2 id="education-heading">{{ labels.education }}</h2>
+      <ul class="simple-list">
+        {% for item in education %}
+        <li>{{ item[lang] }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    {% if languages %}
+    <section class="section compact-section" aria-labelledby="languages-heading">
+      <h2 id="languages-heading">{{ labels.languages }}</h2>
+      <ul class="simple-list">
+        {% for item in languages %}
+        <li><strong>{{ item.name[lang] }}:</strong> {{ item.level[lang] }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    <section class="section" aria-labelledby="skills-heading">
+      <h2 id="skills-heading">{{ labels.technical_skills }}</h2>
+      <div class="skills">
+        {% for group, values in skills.items() %}
+        <p><strong>{{ group }}:</strong> {{ values | join(', ') }}</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section compact-section" aria-labelledby="certifications-heading">
+      <h2 id="certifications-heading">{{ labels.certifications }}</h2>
+      <ul class="simple-list">
+        {% for item in certifications %}
+        <li>{{ item[lang] }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
