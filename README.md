@@ -91,8 +91,7 @@ python scripts/generate.py
 Generate all valid PDF variants with a specific template:
 
 ```bash
-python scripts/generate.py --template pdf-like
-python scripts/generate.py --template ats-clean
+python scripts/generate.py --template defaultRemove
 ```
 
 Generate all valid PDF variants from a non-default CV data file:
