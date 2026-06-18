@@ -78,7 +78,7 @@ def profiles_from_data(data: dict[str, Any]) -> list[str]:
 
 def selected_template(root: Path, data: dict[str, Any], requested_template: str | None) -> str:
     choices = template_choices(root)
-    template_name = requested_template or data.get("settings", {}).get("default_template", "classic")
+    template_name = requested_template or data.get("settings", {}).get("default_template", "default")
     if template_name not in choices:
         raise SystemExit(f"Invalid template: {template_name}. Available: {', '.join(choices)}")
     return template_name
@@ -146,7 +146,7 @@ def render_variant(
     )
 
     base_name = f"cv-{slugify(variant_data['personal']['name'])}-{profile}-{lang}"
-    if template_name != "classic":
+    if template_name != "default":
         base_name += f"-{template_name}"
 
     pdf_path = output_dir / f"{base_name}.pdf"

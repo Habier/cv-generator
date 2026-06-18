@@ -23,21 +23,6 @@ cv-generator/
 ├── scripts/
 │   └── generate.py
 └── templates/
-    ├── classic/
-    │   ├── cv.html.j2
-    │   └── style.css
-    ├── pdf-like/
-    │   ├── cv.html.j2
-    │   └── style.css
-    ├── compact/
-    │   ├── cv.html.j2
-    │   └── style.css
-    ├── sidebar/
-    │   ├── cv.html.j2
-    │   └── style.css
-    └── ats-clean/
-        ├── cv.html.j2
-        └── style.css
 ```
 
 ## Installation
@@ -82,29 +67,22 @@ Do not commit your personal `cv.yml`. If it was already tracked in a repository,
 
 ## Usage
 
-Generate all valid PDF variants with the default template (`settings.default_template`, usually `classic`):
+Generate all valid PDF variants with the default template (`settings.default_template`, usually `default`):
 
 ```bash
 python scripts/generate.py
-```
-
-Generate all valid PDF variants with a specific template:
-
-```bash
-python scripts/generate.py --template defaultRemove
 ```
 
 Generate all valid PDF variants from a non-default CV data file:
 
 ```bash
 python scripts/generate.py --cv path/to/cv.yml
-python scripts/generate.py --cv /absolute/path/to/cv.yml --template pdf-like
 ```
 
 Equivalent Make target:
 
 ```bash
-make pdf TEMPLATE=pdf-like
+make pdf TEMPLATE=default
 ```
 
 Generated files are written to:
@@ -153,7 +131,7 @@ profiles:
       en: Backend developer with 6 years of experience...
 ```
 
-Each profile is generated once for each language key under `labels`. Output filenames follow `cv-{name}-{profile}-{language}.pdf`, with the template name appended for non-classic templates.
+Each profile is generated once for each language key under `labels`. Output filenames follow `cv-{name}-{profile}-{language}.pdf`, with the template name appended for non-default templates.
 
 ### Skills
 
@@ -220,10 +198,7 @@ Common sections:
 Each template has its own CSS:
 
 ```text
-templates/pdf-like/style.css
-templates/compact/style.css
-templates/sidebar/style.css
-templates/ats-clean/style.css
+templates/default/style.css
 ```
 
 To create a new template:
@@ -231,7 +206,7 @@ To create a new template:
 1. Copy an existing folder, for example:
 
 ```bash
-cp -r templates/pdf-like templates/my-template
+cp -r templates/default templates/my-template
 ```
 
 2. Edit `templates/my-template/style.css` and/or `templates/my-template/cv.html.j2`.

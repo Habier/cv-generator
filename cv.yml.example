@@ -1,7 +1,7 @@
 settings:
   default_language: es
   default_profile: backend
-  default_template: classic
+  default_template: default
 
 personal:
   name: Habier Github
