@@ -92,6 +92,7 @@ def render_variant(
     template_name: str,
     output_dir: Path,
     pdf_renderer: Any,
+    write_html: bool,
 ) -> Path:
     known_languages = languages_from_labels(data)
     variant_data = add_localized_fallbacks(data, lang, known_languages)
@@ -149,6 +150,10 @@ def render_variant(
     if template_name != "default":
         base_name += f"-{template_name}"
 
+    if write_html:
+        html_path = output_dir / f"{base_name}.html"
+        html_path.write_text(html, encoding="utf-8")
+
     pdf_path = output_dir / f"{base_name}.pdf"
 
     pdf_renderer(string=html, base_url=str(template_dir)).write_pdf(str(pdf_path))
@@ -189,7 +194,7 @@ def build(args: argparse.Namespace) -> None:
     except Exception as exc:
         raise SystemExit("Could not import WeasyPrint. Install dependencies with: pip install -r requirements.txt") from exc
     generated = [
-        render_variant(root, data, lang, profile, template_name, output_dir, HTML)
+        render_variant(root, data, lang, profile, template_name, output_dir, HTML, args.html)
         for lang, profile in iter_valid_variants(data)
     ]
 
@@ -204,6 +209,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Generate CV variants from a YAML data file")
     parser.add_argument("--cv", default=None, help="CV YAML file to read. Defaults to the repo root cv.yml")
     parser.add_argument("--template", choices=choices, default=None, help=f"Template to use. Available: {', '.join(choices)}")
+    parser.add_argument("--html", action="store_true", help="Also write the rendered HTML files to output/")
     build(parser.parse_args())
 
 
