@@ -5,11 +5,10 @@ CV generator powered by a single local data file (`cv.yml`). It renders every va
 ## What it includes
 
 - One source of truth: `cv.yml`.
-- A safe public example: `cv.yml.example`; copy it to `cv.yml` for local private data.
-- Languages are inferred from the keys under `labels`.
-- Profiles are inferred from the keys under `profiles`.
+- Languages and profiles are inferred from the keys under `labels` and `profiles`.
 - Generation renders every profile × every language.
 - Templates are discovered dynamically from folders under `templates/` that contain `cv.html.j2`.
+- You can create your own templates.
 
 ## Structure
 
@@ -32,15 +31,9 @@ cv-generator/
 WeasyPrint needs system dependencies to generate PDFs:
 
 ```bash
-sudo apt update
-sudo apt install -y python3 python3-venv python3-pip make \
+sudo apt update && sudo apt install -y python3 python3-venv python3-pip make \
   libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libffi-dev \
   libcairo2 libgdk-pixbuf-2.0-0
-```
-
-Then:
-
-```bash
 make install
 cp cv.yml.example cv.yml
 source .venv/bin/activate
@@ -57,13 +50,11 @@ source .venv/bin/activate
 
 ## Local CV data and privacy
 
-`cv.yml` contains private CV data and is intentionally ignored by Git. Start from the safe public example, then edit the local copy:
+`cv.yml` is ignored by default, start from the safe public example, then edit the local copy:
 
 ```bash
 cp cv.yml.example cv.yml
 ```
-
-Do not commit your personal `cv.yml`. If it was already tracked in a repository, remove it from the index with `git rm --cached cv.yml` while keeping the local file.
 
 ## Usage
 
@@ -96,6 +87,7 @@ CLI options:
 ```text
 --cv        CV YAML file to read. Defaults to the repo root cv.yml
 --template  Template folder name discovered from templates/*/cv.html.j2
+--html      Generate HTML files alongside PDFs
 ```
 
 PDF generation is the default behavior.
@@ -114,7 +106,9 @@ labels:
     present: Present
 ```
 
-Any language key can be used. Localized content should use the same keys when possible. If a localized field is missing a generated language, the generator falls back to another available value where possible.
+Any language key can be used. Localized content should use the same keys when possible.
+
+If a localized field is missing a generated language, the generator falls back to another available value where possible.
 
 ### Profiles
 
@@ -203,12 +197,7 @@ templates/default/style.css
 
 To create a new template:
 
-1. Copy an existing folder, for example:
-
-```bash
-cp -r templates/default templates/my-template
-```
-
+1. Copy an existing template folder.
 2. Edit `templates/my-template/style.css` and/or `templates/my-template/cv.html.j2`.
 3. Generate all valid variants with the new template:
 
