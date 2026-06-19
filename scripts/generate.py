@@ -147,8 +147,6 @@ def render_variant(
     )
 
     base_name = f"cv-{slugify(variant_data['personal']['name'])}-{profile}-{lang}"
-    if template_name != "default":
-        base_name += f"-{template_name}"
 
     if write_html:
         html_path = output_dir / f"{base_name}.html"
