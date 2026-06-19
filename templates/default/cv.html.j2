@@ -11,11 +11,15 @@
       <h1>{{ personal.name }}</h1>
       <p class="headline">{{ title }}</p>
       <address class="contact" aria-label="Contact information">
-        <span>{{ personal.location[lang] }}</span>
-        <span>{{ personal.phone }}</span>
-        <span>{{ personal.email }}</span>
-        <span><a href="{{ personal.github }}">{{ personal.github | replace('https://', '') | replace('http://', '') }}</a></span>
-        <span><a href="{{ personal.linkedin }}">{{ personal.linkedin | replace('https://', '') | replace('http://', '') }}</a></span>
+        <div class="contact-line">
+          <span>{{ personal.location[lang] }}</span>
+          <span>{{ personal.phone }}</span>
+          <span>{{ personal.email }}</span>
+        </div>
+        <div class="contact-line contact-line-social">
+          <span><a href="{{ personal.github }}">{{ personal.github | replace('https://', '') | replace('http://', '') }}</a></span>
+          <span><a href="{{ personal.linkedin }}">{{ personal.linkedin | replace('https://', '') | replace('http://', '') }}</a></span>
+        </div>
       </address>
     </header>
 

@@ -43,9 +43,7 @@ h1 {
 }
 
 .contact {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 0;
+  display: block;
   margin: 0;
   color: #374151;
   font-size: 9.2pt;
@@ -53,11 +51,21 @@ h1 {
   overflow-wrap: normal;
 }
 
-.contact > span {
+.contact-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 0;
+}
+
+.contact-line + .contact-line {
+  margin-top: 2px;
+}
+
+.contact-line > span {
   white-space: nowrap;
 }
 
-.contact > span:not(:last-child)::after {
+.contact-line > span:not(:last-child)::after {
   content: " • ";
   color: #6b7280;
 }
