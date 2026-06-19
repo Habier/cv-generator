@@ -130,6 +130,11 @@ li {
   page-break-inside: avoid;
 }
 
+.section[aria-labelledby="experience-heading"] .item + .item {
+  padding-top: 7px;
+  border-top: 1px solid #e5e7eb;
+}
+
 .item-header {
   display: flex;
   justify-content: space-between;
