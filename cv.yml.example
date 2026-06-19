@@ -1,7 +1,7 @@
 settings:
   default_language: es
   default_profile: backend
-  default_template: default
+  default_template: default-icons
 
 personal:
   name: Habier Github
@@ -11,7 +11,7 @@ personal:
   phone: "+34 600 000 000"
   email: habier.github@example.com
   github: https://github.com/habier
-  linkedin: https://www.linkedin.com/in/example-profile
+  linkedin: https://linkedin.com/in/example-profile
 
 labels:
   es:

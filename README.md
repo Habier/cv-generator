@@ -2,6 +2,8 @@
 
 CV generator powered by a single local data file (`cv.yml`). It renders every valid CV variant for the selected visual template.
 
+Example output: [`Example/example-cv.pdf`](Example/example-cv.pdf)
+
 ## What it includes
 
 - One source of truth: `cv.yml`.
