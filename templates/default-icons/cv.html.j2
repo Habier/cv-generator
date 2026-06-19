@@ -77,7 +77,7 @@
       <h2 id="projects-heading">{{ labels.personal_projects }}</h2>
       {% for project in projects %}
       <article class="item">
-        <h3>{{ project.name }}</h3>
+        <h3>{% if project.url %}<a href="{{ project.url }}">{{ project.name }}</a>{% else %}{{ project.name }}{% endif %}</h3>
         <p>{{ project.description[lang] }}</p>
         {% if project.bullets %}
         <ul>

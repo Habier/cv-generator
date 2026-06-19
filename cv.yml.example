@@ -98,6 +98,7 @@ experience:
 
 projects:
   - name: Portfolio Automation Toolkit
+    url: https://github.com/habier/portfolio-automation-toolkit
     description:
       es: Herramienta de ejemplo para generar informes estáticos desde datos YAML y plantillas HTML.
       en: Example tool that generates static reports from YAML data and HTML templates.

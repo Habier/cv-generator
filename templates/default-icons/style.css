@@ -102,6 +102,11 @@ h3 {
   line-height: 1.25;
 }
 
+.section[aria-labelledby="projects-heading"] h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
 p {
   margin: 3px 0;
   orphans: 3;
