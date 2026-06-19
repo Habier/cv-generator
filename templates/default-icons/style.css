@@ -121,6 +121,10 @@ p {
   widows: 3;
 }
 
+.summary {
+  white-space: pre-line;
+}
+
 .text-list {
   margin: 3px 0 3px 0;
   padding: 0;
