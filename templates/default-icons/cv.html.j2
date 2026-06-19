@@ -60,17 +60,17 @@
       <article class="item">
         <header class="item-header">
           <div>
-            <h3>{{ job.company_name }} <span class="role-group"><span class="title-separator">—</span> <span class="role">{{ job.role[lang] }}</span></span></h3>
+            <h3>{{ job.company_name }} <span class="role-group"><span class="title-separator">-</span> <span class="role">{{ job.role[lang] }}</span></span></h3>
           </div>
           <p class="date-range">{{ job.date_range }}</p>
         </header>
         <p>{{ job.description[lang] }}</p>
         {% if job.bullets %}
-        <ul>
+        <div class="text-list" role="list">
           {% for bullet in job.bullets %}
-          <li>{{ bullet[lang] }}</li>
+          <div class="text-list-item" role="listitem"><svg class="list-marker" viewBox="0 0 4 4" aria-hidden="true" focusable="false"><circle cx="2" cy="2" r="1.7" /></svg><span>{{ bullet[lang] }}</span></div>
           {% endfor %}
-        </ul>
+        </div>
         {% endif %}
         <p class="tech"><strong>{{ labels.technologies }}:</strong> {{ job.technologies | join(', ') }}</p>
       </article>
@@ -84,11 +84,11 @@
         <h3>{% if project.url %}<a href="{{ project.url }}">{{ project.name }}</a>{% else %}{{ project.name }}{% endif %}</h3>
         <p>{{ project.description[lang] }}</p>
         {% if project.bullets %}
-        <ul>
+        <div class="text-list" role="list">
           {% for bullet in project.bullets %}
-          <li>{{ bullet[lang] }}</li>
+          <div class="text-list-item" role="listitem"><svg class="list-marker" viewBox="0 0 4 4" aria-hidden="true" focusable="false"><circle cx="2" cy="2" r="1.7" /></svg><span>{{ bullet[lang] }}</span></div>
           {% endfor %}
-        </ul>
+        </div>
         {% endif %}
         <p class="tech"><strong>{{ labels.technologies }}:</strong> {{ project.technologies | join(', ') }}</p>
       </article>
@@ -97,21 +97,21 @@
 
     <section class="section compact-section" aria-labelledby="education-heading">
       <h2 id="education-heading">{{ labels.education }}</h2>
-      <ul class="simple-list">
+      <div class="text-list simple-list" role="list">
         {% for item in education %}
-        <li>{{ item[lang] }}</li>
+        <div class="text-list-item" role="listitem"><svg class="list-marker" viewBox="0 0 4 4" aria-hidden="true" focusable="false"><circle cx="2" cy="2" r="1.7" /></svg><span>{{ item[lang] }}</span></div>
         {% endfor %}
-      </ul>
+      </div>
     </section>
 
     {% if languages %}
     <section class="section compact-section" aria-labelledby="languages-heading">
       <h2 id="languages-heading">{{ labels.languages }}</h2>
-      <ul class="simple-list">
+      <div class="text-list simple-list" role="list">
         {% for item in languages %}
-        <li><strong>{{ item.name[lang] }}:</strong> {{ item.level[lang] }}</li>
+        <div class="text-list-item" role="listitem"><svg class="list-marker" viewBox="0 0 4 4" aria-hidden="true" focusable="false"><circle cx="2" cy="2" r="1.7" /></svg><span><strong>{{ item.name[lang] }}:</strong> {{ item.level[lang] }}</span></div>
         {% endfor %}
-      </ul>
+      </div>
     </section>
     {% endif %}
 
@@ -126,11 +126,11 @@
 
     <section class="section compact-section" aria-labelledby="certifications-heading">
       <h2 id="certifications-heading">{{ labels.certifications }}</h2>
-      <ul class="simple-list">
+      <div class="text-list simple-list" role="list">
         {% for item in certifications %}
-        <li>{{ item[lang] }}</li>
+        <div class="text-list-item" role="listitem"><svg class="list-marker" viewBox="0 0 4 4" aria-hidden="true" focusable="false"><circle cx="2" cy="2" r="1.7" /></svg><span>{{ item[lang] }}</span></div>
         {% endfor %}
-      </ul>
+      </div>
     </section>
   </main>
 </body>

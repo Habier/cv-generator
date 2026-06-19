@@ -108,15 +108,28 @@ p {
   widows: 3;
 }
 
-ul {
-  margin: 3px 0 3px 18px;
+.text-list {
+  margin: 3px 0 3px 0;
   padding: 0;
 }
 
-li {
+.text-list-item {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
   margin: 1px 0;
   orphans: 2;
   widows: 2;
+}
+
+.list-marker {
+  flex: 0 0 4px;
+  width: 4px;
+  height: 4px;
+  display: block;
+  margin-left: 5px;
+  margin-top: 0.48em;
+  fill: #4b5563;
 }
 
 .item {
@@ -166,7 +179,7 @@ li {
   color: #173b3f;
 }
 
-.simple-list li {
+.simple-list .text-list-item {
   margin: 0;
 }
 
