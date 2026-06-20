@@ -1,5 +1,7 @@
 # Generador de CV
 
+Idioma: [English](README.md) | [Español](README.es.md)
+
 Generador de CV basado en un único archivo de datos local (`cv.yml`). Renderiza todas las variantes válidas del CV para la plantilla visual seleccionada.
 
 Ejemplo de salida: [`Example/example-cv.pdf`](Example/example-cv.pdf)
