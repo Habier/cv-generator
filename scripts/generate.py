@@ -154,7 +154,15 @@ def render_variant(
 
     pdf_path = output_dir / f"{base_name}.pdf"
 
-    pdf_renderer(string=html, base_url=str(template_dir)).write_pdf(str(pdf_path))
+    try:
+        pdf_renderer(string=html, base_url=str(template_dir)).write_pdf(str(pdf_path))
+    except PermissionError as exc:
+        raise SystemExit(
+            f"Could not write PDF: {pdf_path}\n"
+            "The file appears to be open in another program. Close the PDF and try again."
+        ) from exc
+    except OSError as exc:
+        raise SystemExit(f"Could not write PDF: {pdf_path}\n{exc}") from exc
     return pdf_path
 
 
