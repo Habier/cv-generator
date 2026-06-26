@@ -2,6 +2,7 @@
 import argparse
 import copy
 import re
+import sys
 import unicodedata
 from pathlib import Path
 from typing import Any
@@ -41,8 +42,20 @@ def slugify(value: str) -> str:
     return slug or "cv"
 
 
-def template_choices(root: Path) -> list[str]:
-    templates_root = root / "templates"
+def resolve_app_root() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parents[1]
+
+
+def resolve_workspace_root() -> Path:
+    return Path.cwd()
+
+
+def template_choices(app_root: Path) -> list[str]:
+    templates_root = app_root / "templates"
+    if not templates_root.is_dir():
+        return []
     return sorted([p.name for p in templates_root.iterdir() if p.is_dir() and (p / "cv.html.j2").exists()])
 
 
@@ -76,8 +89,10 @@ def profiles_from_data(data: dict[str, Any]) -> list[str]:
     return list(profiles.keys())
 
 
-def selected_template(root: Path, data: dict[str, Any], requested_template: str | None) -> str:
-    choices = template_choices(root)
+def selected_template(app_root: Path, data: dict[str, Any], requested_template: str | None) -> str:
+    choices = template_choices(app_root)
+    if not choices:
+        raise SystemExit(f"No valid templates found in: {app_root / 'templates'}")
     template_name = requested_template or data.get("settings", {}).get("default_template", "default")
     if template_name not in choices:
         raise SystemExit(f"Invalid template: {template_name}. Available: {', '.join(choices)}")
@@ -85,7 +100,7 @@ def selected_template(root: Path, data: dict[str, Any], requested_template: str 
 
 
 def render_variant(
-    root: Path,
+    app_root: Path,
     data: dict[str, Any],
     lang: str,
     profile: str,
@@ -122,7 +137,7 @@ def render_variant(
 
     from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-    template_dir = root / "templates" / template_name
+    template_dir = app_root / "templates" / template_name
     env = Environment(
         loader=FileSystemLoader(template_dir),
         autoescape=select_autoescape(["html", "xml"]),
@@ -172,13 +187,13 @@ def iter_valid_variants(data: dict[str, Any]) -> list[tuple[str, str]]:
     return [(lang, profile) for profile in profiles for lang in languages]
 
 
-def resolve_cv_path(root: Path, requested_cv: str | None) -> Path:
+def resolve_cv_path(workspace_root: Path, requested_cv: str | None) -> Path:
     if requested_cv is None:
-        data_path = root / "cv.yml"
+        data_path = workspace_root / "cv.yml"
     else:
         data_path = Path(requested_cv).expanduser()
         if not data_path.is_absolute():
-            data_path = data_path.resolve()
+            data_path = (workspace_root / data_path).resolve()
 
     if not data_path.is_file():
         raise SystemExit(f"CV data file not found: {data_path}")
@@ -186,21 +201,22 @@ def resolve_cv_path(root: Path, requested_cv: str | None) -> Path:
 
 
 def build(args: argparse.Namespace) -> None:
-    root = Path(__file__).resolve().parents[1]
-    data_path = resolve_cv_path(root, args.cv)
-    output_dir = root / "output"
+    app_root = resolve_app_root()
+    workspace_root = resolve_workspace_root()
+    data_path = resolve_cv_path(workspace_root, args.cv)
+    output_dir = workspace_root / "output"
     output_dir.mkdir(exist_ok=True)
 
     import yaml
 
     data = yaml.safe_load(data_path.read_text(encoding="utf-8"))
-    template_name = selected_template(root, data, args.template)
+    template_name = selected_template(app_root, data, args.template)
     try:
         from weasyprint import HTML
     except Exception as exc:
         raise SystemExit("Could not import WeasyPrint. Install dependencies with: pip install -r requirements.txt") from exc
     generated = [
-        render_variant(root, data, lang, profile, template_name, output_dir, HTML, args.html)
+        render_variant(app_root, data, lang, profile, template_name, output_dir, HTML, args.html)
         for lang, profile in iter_valid_variants(data)
     ]
 
@@ -210,10 +226,10 @@ def build(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
-    root = Path(__file__).resolve().parents[1]
-    choices = template_choices(root)
+    app_root = resolve_app_root()
+    choices = template_choices(app_root)
     parser = argparse.ArgumentParser(description="Generate CV variants from a YAML data file")
-    parser.add_argument("--cv", default=None, help="CV YAML file to read. Defaults to the repo root cv.yml")
+    parser.add_argument("--cv", default=None, help="CV YAML file to read. Defaults to the current directory cv.yml")
     parser.add_argument("--template", choices=choices, default=None, help=f"Template to use. Available: {', '.join(choices)}")
     parser.add_argument("--html", action="store_true", help="Also write the rendered HTML files to output/")
     build(parser.parse_args())
