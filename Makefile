@@ -2,23 +2,20 @@ PYTHON ?= python3
 GEN := $(PYTHON) scripts/generate.py
 TEMPLATE ?=
 
-.PHONY: install pdf all all-templates clean
+.PHONY: install test build-executable generate clean
 
 install:
 	$(PYTHON) -m venv .venv
-	. .venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt
+	. .venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt -r requirements-dev.txt
 
-pdf:
+test:
+	$(PYTHON) -m pytest tests/
+
+build-executable: test
+	$(PYTHON) -m PyInstaller pyinstaller.spec --noconfirm --clean
+
+generate:
 	$(GEN) $(if $(TEMPLATE),--template $(TEMPLATE),)
-
-all: pdf
-
-all-templates:
-	@for template in templates/*; do \
-		if [ -f "$$template/cv.html.j2" ]; then \
-			$(GEN) --template "$$(basename "$$template")"; \
-		fi; \
-	done
 
 clean:
 	rm -rf output/*

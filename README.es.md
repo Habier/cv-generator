@@ -28,6 +28,19 @@ cv-generator/
 └── templates/
 ```
 
+Las distribuciones portables del ejecutable usan una estructura visible similar:
+
+```text
+cv-generator/
+├── cv-generator(.exe)
+├── cv.yml.example
+├── templates/
+└── _deps/
+```
+
+Los archivos de release incluyen `cv.yml.example`, pero no incluyen `cv.yml`; tus datos privados del CV permanecen fuera de la aplicación distribuida hasta que los crees localmente.
+La carpeta `_deps/` contiene los archivos de soporte empaquetados por PyInstaller y debe permanecer junto al ejecutable.
+
 ## Instalación
 
 ### Ubuntu / Debian
@@ -77,7 +90,14 @@ python scripts/generate.py --cv path/to/cv.yml
 Target equivalente de Make:
 
 ```bash
-make pdf TEMPLATE=default
+make generate TEMPLATE=default
+```
+
+Ejecuta la batería de tests:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest tests/
 ```
 
 Los archivos generados se escriben en:
@@ -89,12 +109,48 @@ output/
 Opciones de la CLI:
 
 ```text
---cv        Archivo YAML del CV que se debe leer. Por defecto usa cv.yml en la raíz del repositorio
+--cv        Archivo YAML del CV que se debe leer. Por defecto usa cv.yml en el directorio actual
 --template  Nombre de la carpeta de plantilla descubierta desde templates/*/cv.html.j2
 --html      Genera archivos HTML junto a los PDFs
 ```
 
 La generación de PDF es el comportamiento predeterminado.
+
+## Releases portables del ejecutable
+
+Las releases para Windows y Linux se construyen como archivos PyInstaller `onedir`. Después de extraer una release, copia el archivo de ejemplo del CV en tu directorio de trabajo y edítalo:
+
+```bash
+cp cv.yml.example cv.yml
+```
+
+Después ejecuta el binario desde ese directorio de trabajo:
+
+```bash
+./cv-generator
+```
+
+En Windows, ejecuta:
+
+```powershell
+.\cv-generator.exe
+```
+
+También puedes apuntar a un archivo CV específico:
+
+```bash
+./cv-generator --cv path/to/cv.yml
+```
+
+Los archivos generados se escriben en `output/` dentro del directorio de trabajo actual. Las plantillas se cargan desde la carpeta visible `templates/` junto al ejecutable, mientras los archivos de soporte empaquetados permanecen en `_deps/`. Puedes inspeccionar o copiar una carpeta de plantilla y seleccionarla con `--template` cuando contenga `cv.html.j2`.
+
+El ejecutable sigue dependiendo de las librerías de plataforma que WeasyPrint necesita. En Linux puede que necesites los mismos paquetes de Pango, Cairo, GDK-PixBuf, HarfBuzz y libffi indicados en la sección de instalación para tu distribución.
+
+Construye localmente un artefacto PyInstaller `onedir` cuando tengas instaladas las dependencias de desarrollo:
+
+```bash
+make build-executable
+```
 
 ## Modelo de configuración
 

@@ -1,0 +1,190 @@
+name: Release executables
+
+on:
+  pull_request:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: "Publish files to a GitHub release"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      tag_name:
+        description: "Release tag to publish when publish_release is true"
+        required: false
+        type: string
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }} executable
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: cv-generator-linux-x64
+            archive_name: cv-generator-linux-x64.tar.gz
+          - os: windows-latest
+            artifact_name: cv-generator-windows-x64
+            archive_name: cv-generator-windows-x64.zip
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Linux runtime libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libffi-dev \
+            libcairo2 libgdk-pixbuf-2.0-0
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run tests
+        run: python -m pytest tests/
+
+      - name: Build PyInstaller onedir artifact
+        run: python -m PyInstaller pyinstaller.spec --noconfirm --clean
+
+      - name: Validate release layout
+        shell: pwsh
+        run: |
+          $dist = Join-Path "dist" "cv-generator"
+          if (!(Test-Path -LiteralPath $dist -PathType Container)) { throw "Missing distribution directory: $dist" }
+          $exeName = if ($env:RUNNER_OS -eq "Windows") { "cv-generator.exe" } else { "cv-generator" }
+          $exePath = Join-Path $dist $exeName
+          if (!(Test-Path -LiteralPath $exePath -PathType Leaf)) { throw "Missing executable: $exePath" }
+          $depsPath = Join-Path $dist "_deps"
+          if (!(Test-Path -LiteralPath $depsPath -PathType Container)) { throw "Missing dependency directory: _deps" }
+          if (@(Get-ChildItem -LiteralPath $depsPath -Force).Count -eq 0) { throw "Dependency directory must not be empty: _deps" }
+          if (Test-Path -LiteralPath (Join-Path $dist "base_library.zip")) { throw "PyInstaller support files must not be in the release root" }
+          if (!(Test-Path -LiteralPath (Join-Path $dist "templates") -PathType Container)) { throw "Missing templates directory" }
+          if (!(Test-Path -LiteralPath (Join-Path $dist "templates/default/cv.html.j2") -PathType Leaf)) { throw "Missing default template" }
+          if (!(Test-Path -LiteralPath (Join-Path $dist "cv.yml.example") -PathType Leaf)) { throw "Missing cv.yml.example" }
+          if (Test-Path -LiteralPath (Join-Path $dist "cv.yml")) { throw "Release must not include cv.yml" }
+
+      - name: Smoke test executable runtime
+        shell: pwsh
+        run: |
+          $dist = Join-Path "dist" "cv-generator"
+          $exeName = if ($env:RUNNER_OS -eq "Windows") { "cv-generator.exe" } else { "cv-generator" }
+          $exePath = (Resolve-Path (Join-Path $dist $exeName)).Path
+          $workspace = Join-Path $env:RUNNER_TEMP ("cv-generator-smoke-" + [guid]::NewGuid())
+          New-Item -ItemType Directory -Path $workspace -Force | Out-Null
+
+          function Invoke-SmokeCommand {
+            param(
+              [string[]] $Arguments,
+              [string] $LogName
+            )
+
+            Push-Location $workspace
+            try {
+              $output = & $exePath @Arguments 2>&1
+              $exitCode = $LASTEXITCODE
+            } finally {
+              Pop-Location
+            }
+
+            $outputText = ($output | Out-String)
+            $outputText | Set-Content -LiteralPath (Join-Path $workspace $LogName) -Encoding utf8
+            return @{ ExitCode = $exitCode; Output = $outputText }
+          }
+
+          try {
+            $missingDefault = Invoke-SmokeCommand -Arguments @() -LogName "missing-default-cv.log"
+            if ($missingDefault.ExitCode -eq 0) { throw "Expected missing default cv.yml to fail" }
+            if ($missingDefault.Output -notmatch "CV data file not found" -or $missingDefault.Output -notmatch "cv.yml") {
+              throw "Missing default cv.yml failure did not report the expected generator-level error"
+            }
+
+            $missingRequested = Invoke-SmokeCommand -Arguments @("--cv", "missing.yml") -LogName "missing-requested-cv.log"
+            if ($missingRequested.ExitCode -eq 0) { throw "Expected nonexistent --cv path to fail" }
+            if ($missingRequested.Output -notmatch "CV data file not found" -or $missingRequested.Output -notmatch "missing.yml") {
+              throw "Nonexistent --cv failure did not report the expected generator-level error"
+            }
+
+            if ($env:RUNNER_OS -eq "Linux") {
+              Copy-Item -LiteralPath (Join-Path $dist "cv.yml.example") -Destination (Join-Path $workspace "cv.yml")
+              $generated = Invoke-SmokeCommand -Arguments @("--cv", "cv.yml") -LogName "generate-pdf.log"
+              if ($generated.ExitCode -ne 0) { throw "Expected Linux executable to generate PDFs from cv.yml.example. Output: $($generated.Output)" }
+              $pdfs = @(Get-ChildItem -LiteralPath (Join-Path $workspace "output") -Filter "*.pdf" -File)
+              if ($pdfs.Count -lt 1) { throw "Expected at least one generated PDF in the smoke workspace" }
+            } else {
+              # Windows runners do not provision the native WeasyPrint host libraries
+              # needed for PDF rendering. Keep the smoke test at executable startup
+              # and generator-level fail-fast behavior there; Linux proves real PDF output.
+              "Skipping Windows PDF render smoke because native WeasyPrint host libraries are not installed on the runner."
+            }
+          } finally {
+            Remove-Item -LiteralPath $workspace -Recurse -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: Archive release layout
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "release" -Force | Out-Null
+          if ($env:RUNNER_OS -eq "Windows") {
+            Compress-Archive -Path "dist/cv-generator" -DestinationPath "release/${{ matrix.archive_name }}" -Force
+          } else {
+            tar -czf "release/${{ matrix.archive_name }}" -C "dist" "cv-generator"
+          }
+
+      - name: Validate archive root layout
+        shell: pwsh
+        run: |
+          $archivePath = Join-Path "release" "${{ matrix.archive_name }}"
+          if (!(Test-Path -LiteralPath $archivePath -PathType Leaf)) { throw "Missing archive: $archivePath" }
+          if ($env:RUNNER_OS -eq "Windows") {
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            $zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $archivePath).Path)
+            try {
+              $entries = @($zip.Entries | ForEach-Object { $_.FullName -replace "\\", "/" })
+            } finally {
+              $zip.Dispose()
+            }
+          } else {
+            $entries = @(tar -tzf $archivePath)
+          }
+
+          if ($entries.Count -eq 0) { throw "Archive is empty: $archivePath" }
+          $outsideRoot = @($entries | Where-Object { $_ -ne "cv-generator/" -and -not $_.StartsWith("cv-generator/") })
+          if ($outsideRoot.Count -gt 0) { throw "Archive entries must be rooted under cv-generator/: $($outsideRoot -join ', ')" }
+
+          $exeEntry = if ($env:RUNNER_OS -eq "Windows") { "cv-generator/cv-generator.exe" } else { "cv-generator/cv-generator" }
+          if ($exeEntry -notin $entries) { throw "Archive missing executable entry: $exeEntry" }
+          if ("cv-generator/cv.yml.example" -notin $entries) { throw "Archive missing cv.yml.example at release root" }
+          if ("cv-generator/templates/default/cv.html.j2" -notin $entries) { throw "Archive missing default template under cv-generator/templates" }
+          if (@($entries | Where-Object { $_.StartsWith("cv-generator/_deps/") }).Count -eq 0) { throw "Archive missing _deps contents under cv-generator/" }
+          if ("cv-generator/cv.yml" -in $entries) { throw "Archive must not include cv.yml" }
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: release/${{ matrix.archive_name }}
+          if-no-files-found: error
+
+      - name: Upload release asset
+        if: startsWith(github.ref, 'refs/tags/') || inputs.publish_release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag_name || github.ref_name }}
+          files: release/${{ matrix.archive_name }}

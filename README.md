@@ -28,6 +28,19 @@ cv-generator/
 └── templates/
 ```
 
+Portable executable releases use a similar visible layout:
+
+```text
+cv-generator/
+├── cv-generator(.exe)
+├── cv.yml.example
+├── templates/
+└── _deps/
+```
+
+Release archives include `cv.yml.example` but do not include `cv.yml`; your private CV data stays outside the distributed app until you create it locally.
+The `_deps/` folder contains bundled PyInstaller support files and must stay beside the executable.
+
 ## Installation
 
 ### Ubuntu / Debian
@@ -77,7 +90,14 @@ python scripts/generate.py --cv path/to/cv.yml
 Equivalent Make target:
 
 ```bash
-make pdf TEMPLATE=default
+make generate TEMPLATE=default
+```
+
+Run the test suite:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest tests/
 ```
 
 Generated files are written to:
@@ -89,12 +109,48 @@ output/
 CLI options:
 
 ```text
---cv        CV YAML file to read. Defaults to the repo root cv.yml
+--cv        CV YAML file to read. Defaults to the current directory cv.yml
 --template  Template folder name discovered from templates/*/cv.html.j2
 --html      Generate HTML files alongside PDFs
 ```
 
 PDF generation is the default behavior.
+
+## Portable executable releases
+
+Windows and Linux releases are built as PyInstaller `onedir` archives. After extracting a release, copy the example CV file into your working directory and edit it:
+
+```bash
+cp cv.yml.example cv.yml
+```
+
+Then run the executable from that working directory:
+
+```bash
+./cv-generator
+```
+
+On Windows, run:
+
+```powershell
+.\cv-generator.exe
+```
+
+You can also point at a specific CV file:
+
+```bash
+./cv-generator --cv path/to/cv.yml
+```
+
+Generated files are written to `output/` in the current working directory. Templates are loaded from the visible `templates/` folder beside the executable, while bundled support files stay in `_deps/`. You can inspect or copy a template folder and select it with `--template` when it contains `cv.html.j2`.
+
+The executable still depends on the platform libraries required by WeasyPrint. Linux users may need the same Pango, Cairo, GDK-PixBuf, HarfBuzz, and libffi packages listed in the installation section for their distribution.
+
+Build a local PyInstaller `onedir` artifact when development dependencies are installed:
+
+```bash
+make build-executable
+```
 
 ## Configuration model
 

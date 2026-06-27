@@ -17,6 +17,10 @@ ENV/
 # Generated CV output
 output/
 
+# PyInstaller build output
+build/
+dist/
+
 # Local CV data (private)
 cv.yml
 !cv.yml.example
