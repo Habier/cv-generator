@@ -34,6 +34,7 @@ Portable executable releases use a similar visible layout:
 cv-generator/
 ├── cv-generator(.exe)
 ├── cv.yml.example
+├── README.txt
 ├── templates/
 └── _deps/
 ```
@@ -144,9 +145,16 @@ You can also point at a specific CV file:
 
 Generated files are written to `output/` in the current working directory. Templates are loaded from the visible `templates/` folder beside the executable, while bundled support files stay in `_deps/`. You can inspect or copy a template folder and select it with `--template` when it contains `cv.html.j2`.
 
-The executable still depends on the platform libraries required by WeasyPrint. Linux users may need the same Pango, Cairo, GDK-PixBuf, HarfBuzz, and libffi packages listed in the installation section for their distribution.
+Windows release archives include the native libraries required by WeasyPrint, so end users do not need to install Python, MSYS2, Pango, or Cairo. Linux users may need the same Pango, Cairo, GDK-PixBuf, HarfBuzz, and libffi packages listed in the installation section for their distribution.
 
-Build a local PyInstaller `onedir` artifact when development dependencies are installed:
+To build a Windows artifact locally, install Pango and GDK-PixBuf with MSYS2 and point `WEASYPRINT_DLL_DIRECTORIES` at its `mingw64/bin` directory before running PyInstaller:
+
+```powershell
+$env:WEASYPRINT_DLL_DIRECTORIES = "C:\msys64\mingw64\bin"
+make build-executable
+```
+
+On Linux, build the local PyInstaller `onedir` artifact after installing the platform and development dependencies:
 
 ```bash
 make build-executable

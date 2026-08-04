@@ -44,6 +44,17 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install Windows native libraries
+        if: runner.os == 'Windows'
+        id: msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-pango
+            mingw-w64-x86_64-gdk-pixbuf2
+
       - name: Install Linux runtime libraries
         if: runner.os == 'Linux'
         run: |
@@ -61,6 +72,8 @@ jobs:
         run: python -m pytest tests/
 
       - name: Build PyInstaller onedir artifact
+        env:
+          WEASYPRINT_DLL_DIRECTORIES: ${{ runner.os == 'Windows' && format('{0}\\mingw64\\bin', steps.msys2.outputs.msys2-location) || '' }}
         run: python -m PyInstaller pyinstaller.spec --noconfirm --clean
 
       - name: Validate release layout
@@ -78,6 +91,7 @@ jobs:
           if (!(Test-Path -LiteralPath (Join-Path $dist "templates") -PathType Container)) { throw "Missing templates directory" }
           if (!(Test-Path -LiteralPath (Join-Path $dist "templates/default/cv.html.j2") -PathType Leaf)) { throw "Missing default template" }
           if (!(Test-Path -LiteralPath (Join-Path $dist "cv.yml.example") -PathType Leaf)) { throw "Missing cv.yml.example" }
+          if (!(Test-Path -LiteralPath (Join-Path $dist "README.txt") -PathType Leaf)) { throw "Missing README.txt" }
           if (Test-Path -LiteralPath (Join-Path $dist "cv.yml")) { throw "Release must not include cv.yml" }
 
       - name: Smoke test executable runtime
@@ -121,18 +135,11 @@ jobs:
               throw "Nonexistent --cv failure did not report the expected generator-level error"
             }
 
-            if ($env:RUNNER_OS -eq "Linux") {
-              Copy-Item -LiteralPath (Join-Path $dist "cv.yml.example") -Destination (Join-Path $workspace "cv.yml")
-              $generated = Invoke-SmokeCommand -Arguments @("--cv", "cv.yml") -LogName "generate-pdf.log"
-              if ($generated.ExitCode -ne 0) { throw "Expected Linux executable to generate PDFs from cv.yml.example. Output: $($generated.Output)" }
-              $pdfs = @(Get-ChildItem -LiteralPath (Join-Path $workspace "output") -Filter "*.pdf" -File)
-              if ($pdfs.Count -lt 1) { throw "Expected at least one generated PDF in the smoke workspace" }
-            } else {
-              # Windows runners do not provision the native WeasyPrint host libraries
-              # needed for PDF rendering. Keep the smoke test at executable startup
-              # and generator-level fail-fast behavior there; Linux proves real PDF output.
-              "Skipping Windows PDF render smoke because native WeasyPrint host libraries are not installed on the runner."
-            }
+            Copy-Item -LiteralPath (Join-Path $dist "cv.yml.example") -Destination (Join-Path $workspace "cv.yml")
+            $generated = Invoke-SmokeCommand -Arguments @("--cv", "cv.yml") -LogName "generate-pdf.log"
+            if ($generated.ExitCode -ne 0) { throw "Expected packaged executable to generate PDFs from cv.yml.example. Output: $($generated.Output)" }
+            $pdfs = @(Get-ChildItem -LiteralPath (Join-Path $workspace "output") -Filter "*.pdf" -File)
+            if ($pdfs.Count -lt 1) { throw "Expected at least one generated PDF in the smoke workspace" }
           } finally {
             Remove-Item -LiteralPath $workspace -Recurse -Force -ErrorAction SilentlyContinue
           }
@@ -171,6 +178,7 @@ jobs:
           $exeEntry = if ($env:RUNNER_OS -eq "Windows") { "cv-generator/cv-generator.exe" } else { "cv-generator/cv-generator" }
           if ($exeEntry -notin $entries) { throw "Archive missing executable entry: $exeEntry" }
           if ("cv-generator/cv.yml.example" -notin $entries) { throw "Archive missing cv.yml.example at release root" }
+          if ("cv-generator/README.txt" -notin $entries) { throw "Archive missing README.txt at release root" }
           if ("cv-generator/templates/default/cv.html.j2" -notin $entries) { throw "Archive missing default template under cv-generator/templates" }
           if (@($entries | Where-Object { $_.StartsWith("cv-generator/_deps/") }).Count -eq 0) { throw "Archive missing _deps contents under cv-generator/" }
           if ("cv-generator/cv.yml" -in $entries) { throw "Archive must not include cv.yml" }

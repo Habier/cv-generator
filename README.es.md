@@ -34,6 +34,7 @@ Las distribuciones portables del ejecutable usan una estructura visible similar:
 cv-generator/
 ├── cv-generator(.exe)
 ├── cv.yml.example
+├── README.txt
 ├── templates/
 └── _deps/
 ```
@@ -144,9 +145,16 @@ También puedes apuntar a un archivo CV específico:
 
 Los archivos generados se escriben en `output/` dentro del directorio de trabajo actual. Las plantillas se cargan desde la carpeta visible `templates/` junto al ejecutable, mientras los archivos de soporte empaquetados permanecen en `_deps/`. Puedes inspeccionar o copiar una carpeta de plantilla y seleccionarla con `--template` cuando contenga `cv.html.j2`.
 
-El ejecutable sigue dependiendo de las librerías de plataforma que WeasyPrint necesita. En Linux puede que necesites los mismos paquetes de Pango, Cairo, GDK-PixBuf, HarfBuzz y libffi indicados en la sección de instalación para tu distribución.
+Los archivos de release para Windows incluyen las librerías nativas que WeasyPrint necesita, así que los usuarios finales no tienen que instalar Python, MSYS2, Pango ni Cairo. En Linux puede que necesites los mismos paquetes de Pango, Cairo, GDK-PixBuf, HarfBuzz y libffi indicados en la sección de instalación para tu distribución.
 
-Construye localmente un artefacto PyInstaller `onedir` cuando tengas instaladas las dependencias de desarrollo:
+Para construir localmente un artefacto de Windows, instala Pango y GDK-PixBuf con MSYS2 y configura `WEASYPRINT_DLL_DIRECTORIES` con su directorio `mingw64/bin` antes de ejecutar PyInstaller:
+
+```powershell
+$env:WEASYPRINT_DLL_DIRECTORIES = "C:\msys64\mingw64\bin"
+make build-executable
+```
+
+En Linux, construye el artefacto PyInstaller `onedir` después de instalar las dependencias de plataforma y desarrollo:
 
 ```bash
 make build-executable
