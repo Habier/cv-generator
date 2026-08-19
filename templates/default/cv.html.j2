@@ -17,8 +17,8 @@
           <span>{{ personal.email }}</span>
         </div>
         <div class="contact-line contact-line-social">
-          <span><a href="{{ personal.github }}">{{ personal.github | replace('https://', '') | replace('http://', '') }}</a></span>
-          <span><a href="{{ personal.linkedin }}">{{ personal.linkedin | replace('https://', '') | replace('http://', '') }}</a></span>
+          <span><a href="{{ personal.github }}">{{ personal.github | display_url }}</a></span>
+          <span><a href="{{ personal.linkedin }}">{{ personal.linkedin | display_url }}</a></span>
         </div>
       </address>
     </header>

@@ -19,6 +19,17 @@ def localized(value: Any, lang: str) -> str:
     return str(value)
 
 
+def resolve_personal_links(personal: dict[str, Any], lang: str) -> dict[str, Any]:
+    resolved = dict(personal)
+    for key, value in personal.items():
+        if not isinstance(value, dict):
+            continue
+        non_empty_values = [item for item in value.values() if item]
+        if non_empty_values and all(str(item).startswith(("https://", "http://")) for item in non_empty_values):
+            resolved[key] = localized(value, lang)
+    return resolved
+
+
 def format_date(value: Any, lang: str, labels: dict) -> str:
     if value in (None, "", "present"):
         return labels.get("present", "Present")
@@ -40,6 +51,18 @@ def slugify(value: str) -> str:
     ascii_value = normalized.encode("ascii", "ignore").decode("ascii")
     slug = re.sub(r"[^a-zA-Z0-9]+", "-", ascii_value).strip("-").lower()
     return slug or "cv"
+
+
+def display_url(value: Any) -> str:
+    """Render a URL as clean visible text: strip query string, scheme, and www."""
+    text = str(value).split("?", 1)[0]
+    for scheme in ("https://", "http://"):
+        if text.startswith(scheme):
+            text = text[len(scheme):]
+            break
+    if text.startswith("www."):
+        text = text[len("www."):]
+    return text
 
 
 def resolve_app_root() -> Path:
@@ -114,6 +137,7 @@ def render_variant(
 
     labels = variant_data["labels"][lang]
     profile_data = variant_data["profiles"][profile]
+    personal = resolve_personal_links(variant_data["personal"], lang)
     title = localized(profile_data.get("title", ""), lang)
 
     experience = []
@@ -144,12 +168,13 @@ def render_variant(
         trim_blocks=True,
         lstrip_blocks=True,
     )
+    env.filters["display_url"] = display_url
     template = env.get_template("cv.html.j2")
     html = template.render(
         lang=lang,
         profile=profile,
         template_name=template_name,
-        personal=variant_data["personal"],
+        personal=personal,
         labels=labels,
         title=title,
         summary=localized(profile_data.get("summary", ""), lang),
