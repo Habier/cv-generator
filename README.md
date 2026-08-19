@@ -178,6 +178,20 @@ Any language key can be used. Localized content should use the same keys when po
 
 If a localized field is missing a generated language, the generator falls back to another available value where possible.
 
+### Personal links
+
+Personal links accept either a shared scalar URL or a language-specific mapping. Keep full `https://` URLs in both forms:
+
+```yaml
+personal:
+  github: https://github.com/example
+  linkedin:
+    es: https://www.linkedin.com/in/example/
+    en: https://www.linkedin.com/in/example/?locale=en-US
+```
+
+The mapping is optional: use a scalar when every CV language should use the same URL. This works for any link field under `personal`, not only `linkedin`. When the requested language is absent or empty, selection falls back to `es`, then `en`, then the first non-empty URL.
+
 ### Profiles
 
 Profiles come from the keys under `profiles`:
