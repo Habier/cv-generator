@@ -107,6 +107,13 @@ Generated files are written to:
 output/
 ```
 
+The output folder defaults to `output/` in the current working directory. Override it per CV by setting `settings.output_dir` in `cv.yml` (relative paths resolve against the working directory):
+
+```yaml
+settings:
+  output_dir: build/cvs
+```
+
 CLI options:
 
 ```text

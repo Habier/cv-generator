@@ -225,16 +225,27 @@ def resolve_cv_path(workspace_root: Path, requested_cv: str | None) -> Path:
     return data_path
 
 
+def resolve_output_dir(workspace_root: Path, data: dict[str, Any]) -> Path:
+    configured = data.get("settings", {}).get("output_dir")
+    if not configured:
+        return workspace_root / "output"
+    output_path = Path(str(configured)).expanduser()
+    if not output_path.is_absolute():
+        output_path = (workspace_root / output_path).resolve()
+    return output_path
+
+
 def build(args: argparse.Namespace) -> None:
     app_root = resolve_app_root()
     workspace_root = resolve_workspace_root()
     data_path = resolve_cv_path(workspace_root, args.cv)
-    output_dir = workspace_root / "output"
-    output_dir.mkdir(exist_ok=True)
 
     import yaml
 
     data = yaml.safe_load(data_path.read_text(encoding="utf-8"))
+    output_dir = resolve_output_dir(workspace_root, data)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     template_name = selected_template(app_root, data, args.template)
     try:
         from weasyprint import HTML

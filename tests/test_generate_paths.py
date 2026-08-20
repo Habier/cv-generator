@@ -68,6 +68,24 @@ def test_resolve_cv_path_fails_for_nonexistent_requested_cv(tmp_path):
     assert "missing.yml" in str(exc_info.value)
 
 
+def test_resolve_output_dir_defaults_to_workspace_output(tmp_path):
+    assert generate.resolve_output_dir(tmp_path, {}) == tmp_path / "output"
+    assert generate.resolve_output_dir(tmp_path, {"settings": {}}) == tmp_path / "output"
+
+
+def test_resolve_output_dir_uses_configured_relative_path(tmp_path):
+    data = {"settings": {"output_dir": "build/cvs"}}
+
+    assert generate.resolve_output_dir(tmp_path, data) == (tmp_path / "build/cvs").resolve()
+
+
+def test_resolve_output_dir_uses_configured_absolute_path(tmp_path):
+    custom = tmp_path / "custom"
+    data = {"settings": {"output_dir": str(custom)}}
+
+    assert generate.resolve_output_dir(tmp_path, data) == custom
+
+
 def test_template_choices_accept_valid_and_ignore_invalid_template_dirs(tmp_path):
     templates_root = tmp_path / "templates"
     (templates_root / "default").mkdir(parents=True)
@@ -218,6 +236,50 @@ def test_build_exits_before_render_when_default_cv_is_missing(tmp_path, monkeypa
 
     assert "CV data file not found" in str(exc_info.value)
     assert str(tmp_path / "cv.yml") in str(exc_info.value)
+
+
+def test_build_uses_configured_output_dir_from_cv_yml(tmp_path, monkeypatch):
+    app_root = tmp_path / "app"
+    workspace_root = tmp_path / "workspace"
+    (app_root / "templates" / "default").mkdir(parents=True)
+    (app_root / "templates" / "default" / "cv.html.j2").write_text("ok", encoding="utf-8")
+    workspace_root.mkdir()
+    (workspace_root / "cv.yml").write_text(
+        """
+personal:
+  name: Test User
+settings:
+  default_template: default
+  output_dir: build/cvs
+labels:
+  en:
+    present: Present
+profiles:
+  backend:
+    title: Backend Developer
+    summary: Summary
+""".strip(),
+        encoding="utf-8",
+    )
+
+    output_dirs = []
+
+    def fake_render_variant(app_root_arg, data, lang, profile, template_name, output_dir, pdf_renderer, write_html):
+        output_dirs.append(output_dir)
+        pdf_path = output_dir / "cv-test.pdf"
+        pdf_path.write_text("pdf", encoding="utf-8")
+        return pdf_path
+
+    monkeypatch.setattr(generate, "resolve_app_root", lambda: app_root)
+    monkeypatch.setattr(generate, "resolve_workspace_root", lambda: workspace_root)
+    monkeypatch.setattr(generate, "render_variant", fake_render_variant)
+    monkeypatch.setitem(sys.modules, "weasyprint", types.SimpleNamespace(HTML=object))
+
+    generate.build(argparse.Namespace(cv=None, template=None, html=False))
+
+    assert output_dirs == [(workspace_root / "build/cvs").resolve()]
+    assert (workspace_root / "build/cvs" / "cv-test.pdf").is_file()
+    assert not (workspace_root / "output").exists()
 
 
 def test_main_exits_before_render_when_requested_cv_is_missing(tmp_path, monkeypatch):
