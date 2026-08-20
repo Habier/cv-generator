@@ -107,6 +107,13 @@ Los archivos generados se escriben en:
 output/
 ```
 
+La carpeta de salida usa `output/` en el directorio de trabajo actual por defecto. Puedes cambiarla por CV con `settings.output_dir` en `cv.yml` (las rutas relativas se resuelven contra el directorio de trabajo):
+
+```yaml
+settings:
+  output_dir: build/cvs
+```
+
 Opciones de la CLI:
 
 ```text
