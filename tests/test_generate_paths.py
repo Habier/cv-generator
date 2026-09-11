@@ -243,6 +243,61 @@ def test_render_variant_only_shows_certifications_section_when_populated(
     assert ("Example Certification" in html) is should_render
 
 
+@pytest.mark.parametrize("template_name", ["default", "default-icons"])
+@pytest.mark.parametrize(
+    ("description", "should_render"),
+    [(None, False), ({"en": ""}, False), ({"en": "Job description"}, True)],
+)
+def test_render_variant_only_shows_job_description_when_populated(
+    tmp_path, template_name, description, should_render
+):
+    app_root = Path(__file__).resolve().parents[1]
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+    rendered_html = []
+
+    class FakePdf:
+        def write_pdf(self, path):
+            Path(path).write_text("pdf", encoding="utf-8")
+
+    def fake_pdf_renderer(*, string, base_url):
+        rendered_html.append(string)
+        return FakePdf()
+
+    job = {
+        "company": "Example Company",
+        "role": {"en": "Developer"},
+        "start": "2025-01",
+        "end": "present",
+        "bullets": [],
+        "technologies": [],
+    }
+    if description is not None:
+        job["description"] = description
+
+    data = {
+        "personal": {
+            "name": "Test User",
+            "location": {"en": "Test City"},
+            "phone": "+1 555 0100",
+            "email": "test@example.com",
+            "github": "https://github.com/example",
+            "linkedin": "https://linkedin.com/in/example",
+        },
+        "labels": {"en": {"present": "Present", "professional_experience": "Experience"}},
+        "profiles": {"backend": {"title": {"en": "Developer"}, "summary": {"en": "Summary"}}},
+        "experience": [job],
+    }
+
+    generate.render_variant(app_root, data, "en", "backend", template_name, output_dir, fake_pdf_renderer, False)
+
+    job_article = re.search(r'<article class="item">(.*?)</article>', rendered_html[0], re.DOTALL)
+    assert job_article is not None
+    article_html = job_article.group(1)
+    assert ("<p>Job description</p>" in article_html) is should_render
+    assert article_html.count("<p") == (2 if should_render else 1)
+
+
 def test_build_writes_output_under_workspace_root(tmp_path, monkeypatch):
     app_root = tmp_path / "app"
     workspace_root = tmp_path / "workspace"
