@@ -104,6 +104,7 @@
       </div>
     </section>
 
+    {% if certifications | default([]) %}
     <section class="section compact-section" aria-labelledby="certifications-heading">
       <h2 id="certifications-heading">{{ labels.certifications }}</h2>
       <div class="text-list simple-list" role="list">
@@ -112,6 +113,7 @@
         {% endfor %}
       </div>
     </section>
+    {% endif %}
   </main>
 </body>
 </html>
