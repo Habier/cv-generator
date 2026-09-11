@@ -12,7 +12,9 @@
       <p class="headline">{{ title }}</p>
       <address class="contact" aria-label="Contact information">
         <div class="contact-line">
+          {% if personal.location %}
           <span>{{ personal.location[lang] }}</span>
+          {% endif %}
           <span>{{ personal.phone }}</span>
           <span>{{ personal.email }}</span>
         </div>
@@ -46,7 +48,9 @@
           {% endfor %}
         </div>
         {% endif %}
+        {% if job.technologies %}
         <p class="tech"><strong>{{ labels.technologies }}:</strong> {{ job.technologies | join(', ') }}</p>
+        {% endif %}
       </article>
       {% endfor %}
     </section>
@@ -64,7 +68,9 @@
           {% endfor %}
         </div>
         {% endif %}
+        {% if project.technologies %}
         <p class="tech"><strong>{{ labels.technologies }}:</strong> {{ project.technologies | join(', ') }}</p>
+        {% endif %}
       </article>
       {% endfor %}
     </section>
